@@ -49,7 +49,11 @@ const els = {
   refreshBtn: document.getElementById("refreshBtn"),
   listings: document.getElementById("listings"),
   empty: document.getElementById("empty"),
+  filters: document.getElementById("filters"),
 };
+
+let activeListings = []; // cached {id, l}
+let filter = "all"; // all | mine
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -119,27 +123,38 @@ async function refresh() {
 
     const ids = [...Array(count).keys()];
     const all = await Promise.all(ids.map((id) => contract.getListing(id)));
-    const active = ids
+    activeListings = ids
       .map((id) => ({ id, l: all[id] }))
       .filter((x) => x.l.active)
       .reverse();
 
-    els.count.textContent = active.length ? `(${active.length})` : "";
-
-    if (active.length === 0) {
-      els.listings.innerHTML = "";
-      els.empty.classList.remove("hidden");
-      setStatus("");
-      return;
-    }
-    els.empty.classList.add("hidden");
-
-    els.listings.innerHTML = "";
-    active.forEach(renderListing);
+    els.filters.classList.toggle("hidden", activeListings.length === 0);
+    render();
     setStatus("");
   } catch (err) {
     setStatus(err.shortMessage || err.message || "Failed to load.", "error");
   }
+}
+
+function render() {
+  const visible =
+    filter === "mine"
+      ? activeListings.filter((x) => x.l.seller.toLowerCase() === account)
+      : activeListings;
+
+  els.count.textContent = visible.length ? `(${visible.length})` : "";
+  els.listings.innerHTML = "";
+
+  if (visible.length === 0) {
+    els.empty.textContent =
+      filter === "mine"
+        ? "You have no active listings."
+        : "No active listings — list the first one!";
+    els.empty.classList.remove("hidden");
+    return;
+  }
+  els.empty.classList.add("hidden");
+  visible.forEach(renderListing);
 }
 
 function renderListing({ id, l }) {
@@ -240,6 +255,16 @@ els.connectBtn.addEventListener("click", connect);
 els.approveBtn.addEventListener("click", approve);
 els.listBtn.addEventListener("click", listNft);
 els.refreshBtn.addEventListener("click", refresh);
+
+els.filters.querySelectorAll(".filter").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    filter = btn.dataset.filter;
+    els.filters
+      .querySelectorAll(".filter")
+      .forEach((b) => b.classList.toggle("active", b === btn));
+    render();
+  });
+});
 
 if (window.ethereum) {
   window.ethereum.on?.("accountsChanged", () => window.location.reload());

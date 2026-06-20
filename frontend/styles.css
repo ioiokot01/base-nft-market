@@ -147,6 +147,30 @@ h2 {
   font-weight: 400;
 }
 
+.filters {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.filter {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 5px 14px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.filter.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #2e0a1f;
+  font-weight: 700;
+}
+
 .listings {
   display: flex;
   flex-direction: column;

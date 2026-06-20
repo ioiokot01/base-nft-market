@@ -177,4 +177,44 @@ describe("NFTMarketplace", function () {
       await expect(market.getListing(0)).to.be.revertedWith("No such listing");
     });
   });
+
+  describe("Price updates & edge cases", function () {
+    it("rejects updating the price to zero", async function () {
+      const { market, seller } = await withListing();
+      await expect(
+        market.connect(seller).updatePrice(0, 0)
+      ).to.be.revertedWith("Price must be > 0");
+    });
+
+    it("buys at the updated price", async function () {
+      const { market, seller, buyer, nft } = await withListing();
+      const newPrice = ethers.parseEther("2");
+      await market.connect(seller).updatePrice(0, newPrice);
+
+      // Old price is now too low.
+      await expect(
+        market.connect(buyer).buy(0, { value: PRICE })
+      ).to.be.revertedWith("Insufficient payment");
+
+      await market.connect(buyer).buy(0, { value: newPrice });
+      expect(await nft.ownerOf(1)).to.equal(buyer.address);
+    });
+
+    it("blocks updating a sold listing", async function () {
+      const { market, seller, buyer } = await withListing();
+      await market.connect(buyer).buy(0, { value: PRICE });
+      await expect(
+        market.connect(seller).updatePrice(0, ethers.parseEther("2"))
+      ).to.be.revertedWith("Not active");
+    });
+
+    it("supports listing via setApprovalForAll", async function () {
+      const { nft, market, seller } = await deploy();
+      await nft.connect(seller).mint(); // tokenId 1
+      await nft.connect(seller).setApprovalForAll(await market.getAddress(), true);
+      await expect(
+        market.connect(seller).list(await nft.getAddress(), 1, PRICE)
+      ).to.emit(market, "Listed");
+    });
+  });
 });

@@ -1,0 +1,19 @@
+{
+  "name": "base-nft-market",
+  "version": "1.0.0",
+  "description": "An ERC-721 NFT marketplace dApp on the Base ecosystem (Base Sepolia testnet).",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy": "hardhat run scripts/deploy.js --network baseSepolia"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "dotenv": "^16.4.5",
+    "hardhat": "^2.22.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.0"
+  }
+}

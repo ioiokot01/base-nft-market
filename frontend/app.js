@@ -50,6 +50,7 @@ const els = {
   listings: document.getElementById("listings"),
   empty: document.getElementById("empty"),
   filters: document.getElementById("filters"),
+  feeInfo: document.getElementById("feeInfo"),
 };
 
 let activeListings = []; // cached {id, l}
@@ -101,6 +102,13 @@ async function connect() {
     els.listCard.classList.remove("hidden");
     els.refreshBtn.disabled = false;
     if (!els.nftInput.value) els.nftInput.value = DEFAULT_NFT;
+
+    try {
+      const feeBps = await contract.feeBps();
+      els.feeInfo.textContent = `Marketplace fee: ${Number(feeBps) / 100}% (paid by the seller on sale).`;
+    } catch {
+      /* non-fatal */
+    }
 
     await refresh();
     ["Listed", "Purchased", "Cancelled", "PriceUpdated"].forEach((e) =>
